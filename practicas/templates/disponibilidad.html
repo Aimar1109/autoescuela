@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Selecciona tu disponibilidad horaria:</h2>
+<form id="horarioForm" method="POST">
+    {% csrf_token %}
+    <table>
+        <thead>
+            <tr>
+                <th>Hora</th>
+                <th>Lunes</th>
+                <th>Martes</th>
+                <th>Miércoles</th>
+                <th>Jueves</th>
+                <th>Viernes</th>
+            </tr>
+        </thead>
+        <tbody id="horarioBody">
+            <!-- Las filas de horas se generarán con JavaScript -->
+        </tbody>
+    </table>
+    <input type="hidden" name="disponibilidad" id="disponibilidad">
+    <br>
+    <button type="submit">Guardar Horario</button>
+</form>
+
+<script>
+    const horas = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
+    const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+
+    const horarioBody = document.getElementById('horarioBody');
+    const disponibilidadInput = document.getElementById('disponibilidad');
+    const disponibilidad = {};
+
+    // Generar filas dinámicamente
+    horas.forEach(hora => {
+        const row = document.createElement('tr');
+        const horaCell = document.createElement('td');
+        horaCell.textContent = hora;
+        row.appendChild(horaCell);
+
+        dias.forEach(dia => {
+            const cell = document.createElement('td');
+            cell.dataset.hora = hora;
+            cell.dataset.dia = dia;
+            cell.textContent = "❌"; // Inicialmente marcado como no disponible
+            disponibilidad[`${dia} ${hora}`] = false;
+
+            cell.addEventListener('click', () => {
+                const key = `${dia} ${hora}`;
+                cell.classList.toggle('selected');
+                if (disponibilidad[key]) {
+                    disponibilidad[key] = false;
+                    cell.textContent = "❌";
+                } else {
+                    disponibilidad[key] = true;
+                    cell.textContent = "✅";
+                }
+            });
+            row.appendChild(cell);
+        });
+        horarioBody.appendChild(row);
+    });
+
+    // Al enviar el formulario, actualizar el input oculto
+    document.getElementById('horarioForm').addEventListener('submit', () => {
+        disponibilidadInput.value = JSON.stringify(disponibilidad);
+    });
+</script>
+
+{% endblock %}

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -122,3 +123,15 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# El backend que gestiona el almacenamiento de sesiones
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Usa la base de datos (por defecto)
+# Otros valores posibles: cache, file, signed_cookies
+
+# Duración de la sesión
+SESSION_COOKIE_AGE = 1209600  # 2 semanas en segundos
+
+# Seguridad
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # La sesión expira al cerrar el navegador
+SESSION_COOKIE_SECURE = True  # Solo envía la cookie a través de HTTPS
+

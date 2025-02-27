@@ -1,13 +1,16 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Autoescuela Uribe-Costa</title>
+    <link rel="stylesheet" href="{% static 'styles/main.css' %}">
 </head>
 <body>
     
-    <nav>
+    <nav class="navbar container">
         <ul>
             <li>
                 <a href="{% url 'home' %}">Home</a>
@@ -16,6 +19,15 @@
             <li>
                 <a href="{% url 'fecha_aprob' %}">Fecha Aprobado</a>
             </li>
+            {% if request.session.aprobado %}
+            <li>
+                <a href="{% url 'disponibilidad' %}">Disponibilidad</a>
+            </li>
+            {% elif request.session.instructor %}
+            <li>
+                <a href="{% url 'horario_instructor' %}">Horario Instructor</a>
+            </li>
+            {% endif %}
             <li>
                 <a href="{% url 'logout' %}">Logout</a>
             </li>

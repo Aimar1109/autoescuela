@@ -1,12 +1,18 @@
 from django import forms
+from .models import Disponibilidad
 
 class FechaDeAprobado(forms.Form):
-    fecha = forms.DateField(
+    date = forms.DateField(
         label="Ingrese la fecha de aprobado",
         widget=forms.DateInput(
             attrs={
-                'type': 'date',  # Esto genera un selector de fecha en navegadores modernos
-                'class': 'form-control',  # Bootstrap o cualquier clase CSS personalizada
+                'type': 'date',
+                'class': 'form-control',
             }
         )
     )
+
+class CrearDisponibilidad(forms.ModelForm):
+    class Meta:
+        model = Disponibilidad
+        fields = ['disp']

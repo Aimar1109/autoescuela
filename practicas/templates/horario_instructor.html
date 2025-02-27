@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<h1>Alumnos Aprobados</h1>
+<table>
+    <tr>
+        <td>&nbsp;</td>
+        {% for dia in dias %}
+        <td>{{dia}}</td>
+        {% endfor %}
+    </tr>
+    {% for hora in horas_list %}
+    <tr>
+        <td>{{horas[0]}}</td>
+        {% for dia in dias_list %}
+        <td>
+            {{ alumnos.0.0 }}
+        </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
