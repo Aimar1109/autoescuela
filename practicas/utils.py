@@ -9,6 +9,8 @@ def setup_groups(sender, **kwargs):
     # Crear o recuperar el grupo "Instructores"
     instructores_group, _ = Group.objects.get_or_create(name='Instructores')
 
+    alumnos_practico_group, _ = Group.objects.get_or_create(name='Alumnos_practicos')
+
     # Asignar permisos específicos al grupo "Instructores"
     permisos = [
         'add_schedule',  # Cambia "schedule" por el nombre de tu modelo

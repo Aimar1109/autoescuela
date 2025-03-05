@@ -11,12 +11,12 @@
         <td>{{dia}}</td>
         {% endfor %}
     </tr>
-    {% for hora in horas_list %}
+    {% for hora in alumnos %}
     <tr>
-        <td>{{horas[0]}}</td>
-        {% for dia in dias_list %}
+        <td>{{hora.0}}</td>
+        {% for alumno in hora.1 %}
         <td>
-            {{ alumnos.0.0 }}
+            {{alumno}}
         </td>
         {% endfor %}
     </tr>

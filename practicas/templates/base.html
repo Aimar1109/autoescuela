@@ -16,16 +16,23 @@
                 <a href="{% url 'home' %}">Home</a>
             </li>
             {% if user.is_authenticated %}
-            <li>
-                <a href="{% url 'fecha_aprob' %}">Fecha Aprobado</a>
-            </li>
             {% if request.session.aprobado %}
             <li>
                 <a href="{% url 'disponibilidad' %}">Disponibilidad</a>
             </li>
+            <li>
+                <a href="{% url 'fecha_aprob' %}">Fecha Aprobado Teorico</a>
+            </li>
+            <li>
+                <a href="{% url 'practico_aprobado' %}">Fecha Aprobado Practico</a>
+            </li>
             {% elif request.session.instructor %}
             <li>
                 <a href="{% url 'horario_instructor' %}">Horario Instructor</a>
+            </li>
+            {% else %}
+            <li>
+                <a href="{% url 'fecha_aprob' %}">Fecha Aprobado Teorico</a>
             </li>
             {% endif %}
             <li>

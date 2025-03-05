@@ -1,14 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Disponibilidad, FechaAprobado
+from .models import Disponibilidad, FechaAprobado, AlumnosInstructor
 from .forms import FechaDeAprobado, CrearDisponibilidad
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required, permission_required
+import datetime
 import json
 
-HORARIO_HORAS = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00"]
+HORARIO_HORAS = ["09:00", "10:00", "11:00", "12:00", "13:00", "16:00", "17:00", "18:00", "19:00"]
 HORARIO_DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]
 
 # Create your views here.
@@ -62,6 +63,8 @@ def signin(request):
                 request.session['aprobado'] = True
             elif user.groups.filter(name="Instructores").exists():
                 request.session['instructor'] = True
+                if not AlumnosInstructor.objects.filter(instructor=request.user).exists():
+                    AlumnosInstructor.objects.create(instructor=request.user, alumnos=[[None for x in range(len(HORARIO_HORAS))] for x in range(len(HORARIO_DIAS))])
             return redirect('home')
 
 
@@ -78,6 +81,12 @@ def alumno_aprobado(request):
             'form': FechaDeAprobado()
         })
     else:
+        fecha_usuario = datetime.datetime.strptime(request.POST['date'], '%Y-%m-%d').date()
+        if fecha_usuario > datetime.date.today():
+            return render(request, 'aprobado.html', {
+            'form': FechaDeAprobado(),
+            'error': "Introduce la fecha de hoy o anterior."
+        })
         date = FechaAprobado.objects.filter(student=request.user)
         if date.exists():
             date.delete()
@@ -85,7 +94,6 @@ def alumno_aprobado(request):
         user = request.user
         my_group = Group.objects.get(name='Alumnos')
         my_group.user_set.add(user)
-        request.session['aprobado'] = True
         return redirect('disponibilidad')
     
 
@@ -130,6 +138,7 @@ def horario_instructor(request):
             tabla = []
             id_tabla = {}
             counter = 0
+            skip = []
             for alumno in alumnos_fecha:
                 for alumno_disp in alumnos_disp:
                     if alumno['student_id'] == alumno_disp['student_id']:
@@ -137,22 +146,70 @@ def horario_instructor(request):
                         id_tabla[counter] = alumno['student_id']
                         counter += 1
 
-            alumno_list = [[None for x in range(len(HORARIO_HORAS))] for x in range(len(HORARIO_DIAS))]
-            for hora in range(0, len(HORARIO_HORAS)):
-                for alumno_ind in range(len(tabla)):
-                    alumno_hora = [dia[hora] for dia in tabla[alumno_ind]]
-                    if False in alumno_hora:
-                        continue
-                    for x in range(len(alumno_list)):
-                        alumno_list[x][hora] = id_tabla[alumno_ind]
+            instructor = AlumnosInstructor.objects.get(instructor=request.user)
+            alumnos_list = instructor.alumnos
+
+            #print(alumnos_list)
             
-            print(alumno_list)
+            for hora in range(0, len(HORARIO_HORAS)):
+                if alumnos_list[0][hora] != None:
+                    continue
+                find = False
+                for alumno_ind in range(len(tabla)):
+                    if alumno_ind not in skip:
+                        alumno_hora = [dia[hora] for dia in tabla[alumno_ind]]
+                        if False in alumno_hora:
+                            continue
+                        
+                        disponibilidad = Disponibilidad.objects.get(student_id=id_tabla[alumno_ind])
+                        disponibilidad.instructor = request.user
+                        disponibilidad.save()
+                        
+                        skip.append(alumno_ind)
+                        for x in range(len(alumnos_list)):
+                            alumnos_list[x][hora] = id_tabla[alumno_ind]
+                        break
+            
+            instructor.alumnos = alumnos_list
+
+            instructor.save()
+
+            HORARIO_HORAS_p = [["09:00",[]], 
+                               ["10:00",[]], 
+                               ["11:00",[]], 
+                               ["12:00",[]], 
+                               ["13:00",[]], 
+                               ["16:00",[]], 
+                               ["17:00",[]], 
+                               ["18:00",[]], 
+                               ["19:00",[]]]
+
+            for h in range(len(HORARIO_HORAS_p)):
+                if alumnos_list[0][h] == None:
+                    HORARIO_HORAS_p[h][1] = ["" for x in range(5)]
+                    continue
+                HORARIO_HORAS_p[h][1] = [User.objects.get(id=alumnos_list[0][h]).username for x in range(5)]
+
+
             return render(request, 'horario_instructor.html', {
-                'alumnos': alumno_list,
+                'alumnos': alumnos_list,
                 'dias': HORARIO_DIAS,
-                'horas': HORARIO_HORAS,
-                'horas_list': [x for x in range(len(HORARIO_HORAS))],
-                'dias_list': [x for x in range(len(HORARIO_DIAS))],
+                'alumnos': HORARIO_HORAS_p
             })
     else:
+        return redirect('home')
+    
+
+
+@login_required
+def practico_aprobado(request):
+    if request.method == 'GET':
+        return render(request, 'practico_aprobado.html', {
+            'form': FechaDeAprobado()
+        })
+    else:
+        my_group = Group.objects.get(name='Alumnos_practicos')
+        my_group.user_set.add(request.user)
+        FechaAprobado.objects.filter(student=request.user).delete()
+        Disponibilidad.objects.filter(student=request.user).delete()
         return redirect('home')

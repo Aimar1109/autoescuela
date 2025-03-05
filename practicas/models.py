@@ -6,6 +6,7 @@ class Disponibilidad(models.Model):
 
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="disponibilidad", default=None)
     disp = models.JSONField(default=list)
+    instructor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="instructor", default=None, blank=True, null=True)
 
     def __str__(self):
         return f'{self.student}'
