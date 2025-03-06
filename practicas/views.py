@@ -94,6 +94,7 @@ def alumno_aprobado(request):
         user = request.user
         my_group = Group.objects.get(name='Alumnos')
         my_group.user_set.add(user)
+        request.session['aprobado'] = True
         return redirect('disponibilidad')
     
 
@@ -208,8 +209,31 @@ def practico_aprobado(request):
             'form': FechaDeAprobado()
         })
     else:
+        fecha_usuario = datetime.datetime.strptime(request.POST['date'], '%Y-%m-%d').date()
+        teorico_fecha = FechaAprobado.objects.get(student=request.user).date
+
+        if fecha_usuario > datetime.date.today() or fecha_usuario < teorico_fecha:
+            return render(request, 'practico_aprobado.html', {
+            'form': FechaDeAprobado(),
+            'error': "Introduce la fecha de hoy o anterior y mayor a la fecha de aprobado del teorico."
+        })
+
+        request.session['aprobado'] = False
         my_group = Group.objects.get(name='Alumnos_practicos')
         my_group.user_set.add(request.user)
+
+        del_group = Group.objects.get(name='Alumnos')
+        del_group.user_set.remove(request.user)
+        
+        instructor = AlumnosInstructor.objects.get(instructor=Disponibilidad.objects.get(student=request.user).instructor)
+        for dia in range(len(instructor.alumnos)):
+            for hora in range(len(instructor.alumnos[dia])):
+                if instructor.alumnos[dia][hora] == request.user.id:
+                    instructor.alumnos[dia][hora] = None
+        
+        instructor.save()
+
         FechaAprobado.objects.filter(student=request.user).delete()
         Disponibilidad.objects.filter(student=request.user).delete()
+
         return redirect('home')
